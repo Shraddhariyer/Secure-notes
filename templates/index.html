@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Secure Note</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+    <h1 class="text-3xl font-bold text-center mb-6">Create a Secure Note</h1>
+
+    <form id="noteForm">
+        <!-- Note Content -->
+        <textarea id="noteContent" class="w-full p-4 mb-4 border border-gray-300 rounded" rows="6" placeholder="Write your note here..."></textarea>
+
+        <!-- Password Input -->
+        <input id="password" type="password" class="w-full p-2 mb-4 border border-gray-300 rounded" placeholder="Set a password" required>
+
+        <!-- Button to Create Note -->
+        <button type="button" onclick="createNote()" class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 w-full">Generate Link</button>
+    </form>
+
+    <!-- Container for Generated Link -->
+    <div id="linkContainer" class="hidden mt-6">
+        <h2 class="text-xl font-semibold">Share Your Secure Note</h2>
+        <p class="mt-2 text-gray-600">Copy the link below to share:</p>
+        <input id="generatedLink" type="text" class="w-full p-2 mt-2 border border-gray-300 rounded" readonly>
+        <button onclick="copyLink()" class="bg-green-500 text-white p-2 rounded hover:bg-green-600 mt-4 w-full">Copy Link</button>
+    </div>
+
+    <script>
+        async function createNote() {
+            const noteContent = document.getElementById('noteContent').value;
+            const password = document.getElementById('password').value;
+
+            if (!noteContent.trim() || !password.trim()) {
+                alert('Please write a note and set a password!');
+                return;
+            }
+
+            try {
+                // Send the note content and password to the backend API
+                const response = await fetch('http://localhost:5000/create', {  // Replace with your backend URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        note: noteContent,
+                        password: password,
+                    })
+                });
+
+                // Check if the response is successful
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.note_url) {
+                        // Show the generated link to the user
+                        document.getElementById('generatedLink').value = data.note_url;
+                        // Make the link container visible
+                        document.getElementById('linkContainer').classList.remove('hidden');
+                    } else {
+                        alert('Error generating note!');
+                    }
+                } else {
+                    alert('Failed to create note!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error occurred while creating the note!');
+            }
+        }
+
+        function copyLink() {
+            const linkField = document.getElementById('generatedLink');
+            linkField.select();
+            document.execCommand('copy');
+            alert('Link copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
